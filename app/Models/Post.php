@@ -12,4 +12,8 @@ class Post extends Model
     public $table = 'posts';
     use softDeletes;
     use HasFactory;
+
+    public function images() {
+        return $this->hasMany(Image::class, 'post_id', 'id');
+    }
 }

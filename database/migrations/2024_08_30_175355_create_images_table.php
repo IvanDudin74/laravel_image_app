@@ -17,8 +17,14 @@ return new class extends Migration
             $table->id();
             $table->string('path');
             $table->string('url');
+            $table->unsignedBigInteger('post_id');
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('post_id', 'image_post_idx');
+            $table->foreign('post_id', 'image_post_fk')
+                ->on('posts')
+                ->references('id');
         });
     }
 
