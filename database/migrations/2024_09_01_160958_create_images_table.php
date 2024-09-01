@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('path');
             $table->string('url');
+            $table->string('preview_url')->nullable();
             $table->unsignedBigInteger('post_id');
             $table->timestamps();
             $table->softDeletes();
