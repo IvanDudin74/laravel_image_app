@@ -15,7 +15,8 @@ class UpdateController extends Controller
         $data = $request->validated();
         $images = isset($data['images']) ? $data['images'] : null;
         $imagesIdsForDelete = isset($data['images_ids_for_delete']) ? $data['images_ids_for_delete'] : null;
-        unset($data['images'], $data['images_ids_for_delete']);
+        $imagesUrlsForDelete = isset($data['images_urls_for_delete']) ? $data['images_urls_for_delete'] : null;
+        unset($data['images'], $data['images_ids_for_delete'], $data['images_urls_for_delete']);
 
         $currentPostImages = $post->images;
 
@@ -26,6 +27,14 @@ class UpdateController extends Controller
                     //Storage::disk('public')->delete(str_replace('images/', 'images/prew_', $currentPostImage->path));
                     $currentPostImage->delete();
                 }
+            }
+        }
+
+        if ($imagesUrlsForDelete) {
+            foreach ($imagesUrlsForDelete as $imageUrlForDelete) {
+                $removeStr = $request->root() . '/storage/';
+                $path = str_replace($removeStr, '', $imageUrlForDelete);
+                Storage::disk('public')->delete($path);
             }
         }
 

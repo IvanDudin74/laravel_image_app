@@ -12,6 +12,7 @@
                 content: null,
                 post: null,
                 imagesIdsForDelete: [],
+                imagesUrlsForDelete: [],
             }
         },
 
@@ -49,6 +50,10 @@
                     });
             },
 
+            handleImageRemoved(url) {
+                this.imagesUrlsForDelete.push(url)
+            },
+
             update() {
                 const data = new FormData()
                 const files = this.dropzone.getAcceptedFiles()
@@ -62,12 +67,22 @@
                     data.append('images_ids_for_delete[]', imageIdForDelete)
                 })
 
+                this.imagesUrlsForDelete.forEach(imageUrlForDelete => {
+                    data.append('images_urls_for_delete[]', imageUrlForDelete)
+                })
+
                 data.append('title', this.title)
                 data.append('content', this.content)
                 data.append('_method', 'PATCH')
 
                 axios.post(`/api/posts/${this.post.id}`, data)
                     .then(res => {
+                        let previews = this.dropzone.previewsContainer.querySelectorAll('.dz-image-preview')
+
+                        previews.forEach(previews => {
+                            preview.remove()
+                        })
+
                         this.getLatestPost()
                     })
             },
@@ -96,7 +111,7 @@
         <div ref="dropzone" class="p-5 bg-dark text-center text-light btn d-block mb-3">
             Upload
         </div>
-        <vue-editor useCustomImageHandler @image-added="handleImageAdded" v-model="content" class="mb-3"/>
+        <vue-editor useCustomImageHandler @image-added="handleImageAdded" @image-removed="handleImageRemoved" v-model="content" class="mb-3"/>
         <input @click.prevent="update()" type="submit" value="update" class="btn btn-primary mb-3">
     </div>
 </template>
