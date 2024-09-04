@@ -9,8 +9,9 @@
             return {
                 dropzone: null,
                 title: null,
-                post: null,
                 content: null,
+                post: null,
+                imagesIdsForDelete: [],
             }
         },
 
@@ -26,6 +27,10 @@
                     addRemoveLinks: true,
                 })
             this.getLatestPost()
+
+            this.dropzone.on('removedfile', (file) => {
+                this.imagesIdsForDelete.push(file.id)
+            })
         },
 
         methods: {
@@ -35,7 +40,7 @@
 
                 axios.post("/api/posts/images", formData)
                     .then(result => {
-                        const url = result.data.url; // Get url from response
+                        const url = result.data.url;
                         Editor.insertEmbed(cursorLocation, "image", url);
                         resetUploader();
                     })
@@ -44,7 +49,7 @@
                     });
             },
 
-            store() {
+            update() {
                 const data = new FormData()
                 const files = this.dropzone.getAcceptedFiles()
 
@@ -53,12 +58,15 @@
                     this.dropzone.removeFile(file)
                 })
 
+                this.imagesIdsForDelete.forEach(imageIdForDelete => {
+                    data.append('images_ids_for_delete[]', imageIdForDelete)
+                })
+
                 data.append('title', this.title)
                 data.append('content', this.content)
-                this.title = null
-                this.content = null
+                data.append('_method', 'PATCH')
 
-                axios.post('/api/posts', data)
+                axios.post(`/api/posts/${this.post.id}`, data)
                     .then(res => {
                         this.getLatestPost()
                     })
@@ -68,6 +76,13 @@
                 axios.get('/api/posts')
                     .then(res => {
                         this.post = res.data.data;
+                        this.title = this.post.title
+                        this.content = this.post.content
+
+                        this.post.images.forEach(image => {
+                            let file = { id: image.id, name: image.name, size: image.size };
+                            this.dropzone.displayExistingFile(file, image.url);
+                        })
                     })
             }
         }
@@ -82,16 +97,7 @@
             Upload
         </div>
         <vue-editor useCustomImageHandler @image-added="handleImageAdded" v-model="content" class="mb-3"/>
-        <input @click.prevent="store()" type="submit" value="submit" class="btn btn-primary mb-3">
-    </div>
-    <div class="mt-5" v-if="post">
-        <h1>{{ post.title }}</h1>
-        <div v-for="image in post.images">
-            <img :src="image.preview_url" class="mb-3"><br>
-            <img :src="image.url">
-        </div>
-        <div v-html="post.content">
-        </div>
+        <input @click.prevent="update()" type="submit" value="update" class="btn btn-primary mb-3">
     </div>
 </template>
 
